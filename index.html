@@ -2288,12 +2288,29 @@ L14:}
 
     function highlight(line) {
       let s = escapeHtml(line);
-      s = s.replace(/(\/\/.*)$/g, "<span class='c'>$1</span>");
-      s = s.replace(/(\".*?\")/g, "<span class='s'>$1</span>");
-      s = s.replace(/\b(\d+(\.\d+)?)\b/g, "<span class='n'>$1</span>");
-      s = s.replace(/\b(public|private|protected|internal|class|struct|interface|enum|namespace|using|return|if|else|switch|case|break|continue|for|foreach|while|do|try|catch|finally|new|void|async|await|static|readonly|partial|override|virtual|this|base|null|true|false)\b/g, "<span class='k'>$1</span>");
-      s = s.replace(/\b(GameObject|Transform|MonoBehaviour|UniTask|Dictionary|List|string|int|float|bool|var|Vector3|RectTransform|ScriptableObject|CancellationToken)\b/g, "<span class='t'>$1</span>");
-      s = s.replace(/(\[[A-Za-z_][A-Za-z0-9_]*\])/g, "<span class='a'>$1</span>");
+      const placeholders = [];
+      const token = (value) => {
+        const key = String.fromCharCode(0xE000 + placeholders.length);
+        placeholders.push(value);
+        return key;
+      };
+
+      // 먼저 문자열/주석을 플레이스홀더로 치환해서 이후 정규식이 태그를 깨지 않도록 보호
+      s = s.replace(/(\/\/.*)$/g, (m) => token("<span class='c'>" + m + "</span>"));
+      s = s.replace(/(&quot;.*?&quot;)/g, (m) => token("<span class='s'>" + m + "</span>"));
+
+      // 나머지 토큰도 플레이스홀더로 감싸서 span 태그가 다시 파싱되지 않게 처리
+      s = s.replace(/(\[[A-Za-z_][A-Za-z0-9_]*\])/g, (m) => token("<span class='a'>" + m + "</span>"));
+      s = s.replace(/\b(public|private|protected|internal|class|struct|interface|enum|namespace|using|return|if|else|switch|case|break|continue|for|foreach|while|do|try|catch|finally|new|void|async|await|static|readonly|partial|override|virtual|this|base|null|true|false)\b/g, (m) => token("<span class='k'>" + m + "</span>"));
+      s = s.replace(/\b(GameObject|Transform|MonoBehaviour|UniTask|Dictionary|List|string|int|float|bool|var|Vector3|RectTransform|ScriptableObject|CancellationToken)\b/g, (m) => token("<span class='t'>" + m + "</span>"));
+      s = s.replace(/\b(\d+(\.\d+)?)\b/g, (m) => token("<span class='n'>" + m + "</span>"));
+
+      // 보호했던 문자열/주석 복원
+      s = s.replace(/[\uE000-\uF8FF]/g, (ch) => {
+        const idx = ch.charCodeAt(0) - 0xE000;
+        return placeholders[idx] || ch;
+      });
+
       return s;
     }
 
