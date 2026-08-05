@@ -1,0 +1,5 @@
+# Cursor agent packs (git-workflow / system-crew) — local only, do not commit
+.cursor/
+
+node_modules/
+package-lock.json

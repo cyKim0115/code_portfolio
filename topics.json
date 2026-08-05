@@ -1,0 +1,98 @@
+{
+  "topics": [
+    {
+      "id": "island-noise",
+      "title": "섬 노이즈 생성",
+      "origin": "프로젝트 T (BlackStorm)",
+      "summary": "Perlin 마스크·높이로 단층 복셀 섬을 생성합니다. 이동 가능 육지, 못 올라가는 언덕, 해변을 구분하고 블록 카탈로그로 머티리얼을 배치합니다.",
+      "highlights": [
+        "Perlin 기반 마스크 + 높이 필드",
+        "Walkable / UnclimbableHill / Beach 셀 분류",
+        "에디터 윈도우로 시드·직경 조절"
+      ],
+      "files": [
+        "ProceduralIslandGenerator.cs",
+        "ProceduralIslandGenerationSettings.cs",
+        "ProceduralIslandBlockCatalog.cs",
+        "ProceduralIslandGeneratorWindow.cs"
+      ]
+    },
+    {
+      "id": "mesh-collider",
+      "title": "메시 결합 · 콜라이더 최적화",
+      "origin": "프로젝트 T (BlackStorm)",
+      "summary": "복셀 바닥 블록을 레이어별 메시로 베이크하고, SingleMeshCollider / BoxColliderPerBlock / MergedBoxColliders 모드로 콜라이더를 최적화합니다.",
+      "highlights": [
+        "내부 면 컬링 후 메시 결합",
+        "단일 MeshCollider vs greedy Merged Box",
+        "IslandFloorMeshBakeUtility로 프리팹 베이크"
+      ],
+      "files": [
+        "VoxelFloorMeshGenerator.cs",
+        "VoxelFloorGenerationSettings.cs",
+        "VoxelFloorMeshGeneratorWindow.cs",
+        "IslandFloorMeshBakeUtility.cs"
+      ]
+    },
+    {
+      "id": "architecture",
+      "title": "Managers · Event · Pool",
+      "origin": "상용 idle 클라이언트",
+      "summary": "제네릭 ManagerBase, 전역 EventManager 버스, PoolManager, GameManager 오케스트레이션으로 런타임 뼈대를 구성한 패턴입니다.",
+      "highlights": [
+        "ManagerBase<T> 싱글톤",
+        "타입별 UnityAction 이벤트 허브",
+        "큐 기반 프리팹 풀 + UniTask"
+      ],
+      "files": [
+        "ManagerBase.cs",
+        "EventManager.cs",
+        "PoolManager.cs",
+        "GameManager.cs"
+      ]
+    },
+    {
+      "id": "tutorial",
+      "title": "튜토리얼 시스템",
+      "origin": "상용 idle 클라이언트",
+      "summary": "테이블 데이터로 단계를 선언하고 TutorialManager가 그룹 조건을 검사한 뒤, TutorialPanel·Info 전략이 UI/입력을 유도합니다.",
+      "highlights": [
+        "데이터·제어·표현 분리",
+        "그룹 조건 체커",
+        "eTutorialType 확장으로 단계 추가"
+      ],
+      "files": [
+        "TutorialManager.cs",
+        "TutorialManager_GroupConditionChecker.cs",
+        "TutorialPanel.cs",
+        "TutorialUISystem.cs"
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "id": "tools-gssl",
+      "title": "GoogleSpreadSheetLoader",
+      "blurb": "Private Sheets → Enum / TableData SO / 로컬라이즈 JSON 코드젠.",
+      "note": "개인 Unity 에디터 파이프라인",
+      "repo": "https://github.com/cyKim0115/GoogleSpreadSheetLoader",
+      "docs": "https://cykim.gitbook.io/googlespreadsheetloader/"
+    },
+    {
+      "id": "tools-myutil",
+      "title": "MyUtil",
+      "blurb": "ChildUtil, PlatformUtil, SerializableDictionary, LitMotion/UniTask UI 헬퍼.",
+      "note": "재사용 Unity 유틸 팩",
+      "repo": "https://github.com/cyKim0115/MyUtil",
+      "docs": "https://cykim.gitbook.io/myutil/"
+    },
+    {
+      "id": "tools-system-crew",
+      "title": "system-crew",
+      "blurb": "참고 → 스펙 → 구현 → 검수 Cursor 4역할 에이전트 팩.",
+      "note": "서브모듈 + sync로 프로젝트에 배포",
+      "repo": "https://github.com/cyKim0115/system-crew",
+      "docs": "https://cykim.gitbook.io/system-crew/"
+    }
+  ]
+}
