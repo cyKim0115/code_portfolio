@@ -17,9 +17,15 @@
   --code-fg: #e8eeea;
   --code-meta: #7ecfc4;
   --radius: 2px;
-  --font-display: "Syne", "Pretendard", sans-serif;
-  --font-body: "Source Sans 3", "Pretendard", "Apple SD Gothic Neo", sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-body: "Source Sans 3", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-mono: "IBM Plex Mono", "Consolas", ui-monospace, monospace;
+  --syn-keyword: #c792ea;
+  --syn-type: #82aaff;
+  --syn-string: #c3e88d;
+  --syn-comment: #7f8b80;
+  --syn-number: #f78c6c;
+  --syn-attr: #ffcb6b;
+  --syn-preproc: #89ddff;
 }
 
 [data-theme="dark"] {
@@ -38,6 +44,13 @@
   --code-bg: #0a0f0d;
   --code-fg: #e8eeea;
   --code-meta: #5ad1c3;
+  --syn-keyword: #c792ea;
+  --syn-type: #82aaff;
+  --syn-string: #c3e88d;
+  --syn-comment: #6b7a72;
+  --syn-number: #f78c6c;
+  --syn-attr: #ffcb6b;
+  --syn-preproc: #89ddff;
 }
 
 *,
@@ -86,12 +99,12 @@ a:hover {
 }
 
 .brand {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 1.15rem;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 1.1rem;
   color: var(--ink);
   text-decoration: none;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 
 .top-actions {
@@ -203,11 +216,12 @@ a:hover {
 
 .welcome h1,
 .topic-view h1 {
-  font-family: var(--font-display);
-  font-size: clamp(1.8rem, 4vw, 2.4rem);
-  letter-spacing: -0.03em;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: clamp(1.65rem, 3.5vw, 2.1rem);
+  letter-spacing: -0.02em;
   margin: 0 0 0.75rem;
-  line-height: 1.15;
+  line-height: 1.25;
 }
 
 .welcome p,
@@ -293,10 +307,26 @@ a:hover {
   max-height: min(70vh, 920px);
   font-family: var(--font-mono);
   font-size: 0.78rem;
-  line-height: 1.45;
+  line-height: 1.5;
   color: var(--code-fg);
   white-space: pre;
+  tab-size: 4;
 }
+
+.code-panel code.hl {
+  font-family: inherit;
+  font-size: inherit;
+  background: transparent;
+}
+
+.hl .k { color: var(--syn-keyword); }
+.hl .t { color: var(--syn-type); }
+.hl .s { color: var(--syn-string); }
+.hl .c { color: var(--syn-comment); font-style: italic; }
+.hl .n { color: var(--syn-number); }
+.hl .a { color: var(--syn-attr); }
+.hl .p { color: var(--syn-preproc); }
+
 
 .tool-card {
   border: 1.5px solid var(--line);
@@ -307,7 +337,8 @@ a:hover {
 }
 
 .tool-card h2 {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
+  font-weight: 700;
   font-size: 1.25rem;
   margin: 0 0 0.35rem;
 }

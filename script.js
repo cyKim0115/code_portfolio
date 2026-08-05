@@ -29,6 +29,202 @@ function loadSource(topicId, fileName) {
   return text;
 }
 
+function escapeHtml(text) {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+const CS_KEYWORDS = new Set([
+  "abstract","as","base","bool","break","byte","case","catch","char","checked",
+  "class","const","continue","decimal","default","delegate","do","double","else",
+  "enum","event","explicit","extern","false","finally","fixed","float","for",
+  "foreach","goto","if","implicit","in","int","interface","internal","is","lock",
+  "long","namespace","new","null","object","operator","out","override","params",
+  "private","protected","public","readonly","ref","return","sbyte","sealed",
+  "short","sizeof","stackalloc","static","string","struct","switch","this",
+  "throw","true","try","typeof","uint","ulong","unchecked","unsafe","ushort",
+  "using","virtual","void","volatile","while","async","await","var","when",
+  "nameof","record","required","init","get","set","add","remove","partial",
+  "where","yield","from","select","group","into","orderby","join","let","on",
+  "equals","by","ascending","descending","file","scoped",
+]);
+
+const CS_TYPES = new Set([
+  "Action","Func","Task","UniTask","List","Dictionary","HashSet","IEnumerable",
+  "IEnumerator","IDisposable","StringBuilder","Vector2","Vector3","Vector2Int",
+  "Vector3Int","Quaternion","Transform","GameObject","MonoBehaviour","ScriptableObject",
+  "Component","Collider","Mesh","MeshCollider","BoxCollider","Material","Color",
+  "Debug","Mathf","Time","Input","Object","Type","Exception","ArgumentException",
+  "CancellationToken","CancellationTokenSource","Span","ReadOnlySpan","Array",
+  "Queue","Stack","Tuple","ValueTuple","Nullable","Enum","Attribute","SerializeField",
+  "Header","Tooltip","Range","Min","Max","FormerlySerializedAs","Serializable",
+]);
+
+/** Lightweight C# highlighter (file:// safe, no CDN). */
+function highlightCSharp(code) {
+  const tokens = [];
+  let i = 0;
+  const len = code.length;
+
+  const push = (type, value) => {
+    if (!value) return;
+    tokens.push({ type, value });
+  };
+
+  while (i < len) {
+    // line comment
+    if (code[i] === "/" && code[i + 1] === "/") {
+      let j = i + 2;
+      while (j < len && code[j] !== "\n") j++;
+      push("c", code.slice(i, j));
+      i = j;
+      continue;
+    }
+    // block comment
+    if (code[i] === "/" && code[i + 1] === "*") {
+      let j = i + 2;
+      while (j < len && !(code[j] === "*" && code[j + 1] === "/")) j++;
+      j = Math.min(len, j + 2);
+      push("c", code.slice(i, j));
+      i = j;
+      continue;
+    }
+    // preprocessor
+    if (code[i] === "#" && (i === 0 || code[i - 1] === "\n")) {
+      let j = i + 1;
+      while (j < len && code[j] !== "\n") j++;
+      push("p", code.slice(i, j));
+      i = j;
+      continue;
+    }
+    // attribute: [SerializeField] / [Header("x")] — not list[index]
+    if (code[i] === "[" && /[A-Z_]/.test(code[i + 1] || "")) {
+      let j = i + 1;
+      let depth = 1;
+      while (j < len && depth > 0) {
+        if (code[j] === "[") depth++;
+        else if (code[j] === "]") depth--;
+        else if (code[j] === '"') {
+          j++;
+          while (j < len && code[j] !== '"') {
+            if (code[j] === "\\") j++;
+            j++;
+          }
+        }
+        j++;
+      }
+      const chunk = code.slice(i, j);
+      if (chunk.length < 240 && !/\n\s*\n/.test(chunk)) {
+        push("a", chunk);
+        i = j;
+        continue;
+      }
+    }
+    // strings (verbatim / regular / interpolated simplified)
+    if (code[i] === "@" && code[i + 1] === '"') {
+      let j = i + 2;
+      while (j < len) {
+        if (code[j] === '"' && code[j + 1] === '"') {
+          j += 2;
+          continue;
+        }
+        if (code[j] === '"') {
+          j++;
+          break;
+        }
+        j++;
+      }
+      push("s", code.slice(i, j));
+      i = j;
+      continue;
+    }
+    if (code[i] === "$" && code[i + 1] === '"') {
+      let j = i + 2;
+      while (j < len) {
+        if (code[j] === "\\") {
+          j += 2;
+          continue;
+        }
+        if (code[j] === '"') {
+          j++;
+          break;
+        }
+        j++;
+      }
+      push("s", code.slice(i, j));
+      i = j;
+      continue;
+    }
+    if (code[i] === '"') {
+      let j = i + 1;
+      while (j < len) {
+        if (code[j] === "\\") {
+          j += 2;
+          continue;
+        }
+        if (code[j] === '"') {
+          j++;
+          break;
+        }
+        if (code[j] === "\n") break;
+        j++;
+      }
+      push("s", code.slice(i, j));
+      i = j;
+      continue;
+    }
+    if (code[i] === "'") {
+      let j = i + 1;
+      if (code[j] === "\\") j += 2;
+      else j++;
+      if (code[j] === "'") j++;
+      push("s", code.slice(i, j));
+      i = j;
+      continue;
+    }
+    // numbers
+    if (/[0-9]/.test(code[i]) && (i === 0 || !/[A-Za-z_]/.test(code[i - 1]))) {
+      let j = i;
+      while (j < len && /[0-9_.xXa-fA-F]/.test(code[j])) j++;
+      if (/[fFdDmMuUlL]/.test(code[j])) j++;
+      push("n", code.slice(i, j));
+      i = j;
+      continue;
+    }
+    // identifiers / keywords / types
+    if (/[A-Za-z_]/.test(code[i])) {
+      let j = i + 1;
+      while (j < len && /[A-Za-z0-9_]/.test(code[j])) j++;
+      const word = code.slice(i, j);
+      if (CS_KEYWORDS.has(word)) push("k", word);
+      else if (CS_TYPES.has(word) || /^[A-Z][A-Za-z0-9_]*$/.test(word)) push("t", word);
+      else push("", word);
+      i = j;
+      continue;
+    }
+    // plain punctuation / whitespace chunk
+    let j = i + 1;
+    while (
+      j < len &&
+      !/[A-Za-z_0-9/#"'@$]/.test(code[j]) &&
+      !(code[j] === "/" && (code[j + 1] === "/" || code[j + 1] === "*"))
+    ) {
+      j++;
+    }
+    push("", code.slice(i, j));
+    i = j;
+  }
+
+  return tokens
+    .map(({ type, value }) => {
+      const safe = escapeHtml(value);
+      return type ? `<span class="${type}">${safe}</span>` : safe;
+    })
+    .join("");
+}
+
 function initTheme() {
   const btn = $("theme-toggle");
   if (!btn) return;
@@ -103,7 +299,9 @@ function openTopic(topicId, fileName) {
   const panel = el("div", { className: "code-panel" });
   const meta = el("div", { className: "code-meta" });
   meta.appendChild(el("span", { text: `sources/${topicId}/${state.fileName}` }));
-  const pre = el("pre", { text: "" });
+  const pre = el("pre");
+  const codeEl = el("code", { className: "hl" });
+  pre.appendChild(codeEl);
   panel.appendChild(meta);
   panel.appendChild(pre);
   view.appendChild(panel);
@@ -113,10 +311,10 @@ function openTopic(topicId, fileName) {
   try {
     const code = loadSource(topicId, state.fileName);
     meta.appendChild(el("span", { text: `${code.split(/\r?\n/).length} lines` }));
-    pre.textContent = code;
+    codeEl.innerHTML = highlightCSharp(code);
   } catch (err) {
     meta.appendChild(el("span", { text: "error" }));
-    pre.textContent = String(err);
+    codeEl.textContent = String(err);
   }
 }
 
