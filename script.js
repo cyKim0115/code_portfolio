@@ -277,7 +277,6 @@ function openTopic(topicId, fileName) {
   view.hidden = false;
   view.innerHTML = "";
 
-  view.appendChild(el("p", { className: "origin", text: topic.origin }));
   view.appendChild(el("h1", { text: topic.title }));
   view.appendChild(el("p", { className: "lead", text: topic.summary }));
   const hl = el("ul", { className: "highlights" });
